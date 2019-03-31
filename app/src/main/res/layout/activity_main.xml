@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    tools:context=".MainActivity"
+    tools:deviceIds="wear">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:background="@color/dark_grey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Switch
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp"
+                    android:backgroundTint="@android:color/holo_red_dark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <EditText
+                    android:id="@+id/transaction_amount"
+                    android:background="@android:color/transparent"
+                    android:gravity="center_horizontal"
+                    android:textSize="20sp"
+                    android:layout_marginTop="16dp"
+                    android:textStyle="bold"
+                    android:cursorVisible="false"
+                    android:ems="6"
+                    android:text="0.00"
+                    android:inputType="numberDecimal"
+                    android:layout_marginBottom="24dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                style="?selectableItemBackground"
+                android:id="@+id/select_payee"
+                android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                android:layout_marginRight="@dimen/box_inset_layout_padding"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_alignParentStart="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:text="Payee"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:textSize="16sp"
+                    android:text="Select payee"
+                    android:layout_alignParentEnd="true"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/white"/>
+
+            <RelativeLayout
+                android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                android:layout_marginRight="@dimen/box_inset_layout_padding"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_alignParentStart="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:text="Category"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:textSize="16sp"
+                    android:text="Select category"
+                    android:layout_alignParentEnd="true"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/white"/>
+
+            <RelativeLayout
+                android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                android:layout_marginRight="@dimen/box_inset_layout_padding"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_alignParentStart="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:text="Account"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:textSize="16sp"
+                    android:text="Select account"
+                    android:layout_alignParentEnd="true"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/white"/>
+
+            <RelativeLayout
+                android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                android:layout_marginRight="@dimen/box_inset_layout_padding"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_alignParentStart="true"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:text="Date"
+                    android:textSize="16sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:textSize="16sp"
+                    android:text="Select date"
+                    android:layout_alignParentEnd="true"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+            <Button
+                android:layout_marginBottom="48dp"
+                android:textColor="@color/white"
+                android:padding="8dp"
+                android:textSize="14sp"
+                android:textAllCaps="false"
+                android:layout_gravity="center_horizontal"
+                android:text="Save Transaction"
+                android:background="@color/colorAccent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+    </ScrollView>
+</android.support.wear.widget.BoxInsetLayout>
