@@ -1,6 +1,7 @@
 package com.trevorwiebe.ynab.connections;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 
@@ -34,6 +35,8 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
     protected ArrayList<PayeeEntity> doInBackground(URL... urls) {
 
         URL url = urls[0];
+
+        Log.d(TAG, "doInBackground: " + url.toString());
 
         try {
 
@@ -76,6 +79,8 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
             JSONObject mainObject = new JSONObject(result).getJSONObject("data");
             JSONArray payeeArray = mainObject.getJSONArray("payees");
 
+            Log.d(TAG, "parsePayeesString: " + payeeArray.toString());
+
             for(int r=0; r<payeeArray.length(); r++){
                 JSONObject jsonObject = payeeArray.getJSONObject(r);
                 String payeeId = jsonObject.getString("id");
@@ -91,7 +96,9 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
             return payeeEntities;
 
         }catch (JSONException e){
+            Log.e(TAG, "parsePayeesString: ", e);
             return null;
+
         }
 
     }
