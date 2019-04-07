@@ -4,11 +4,10 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.trevorwiebe.ynab.dataLoaders.InsertPayeeList;
 import com.trevorwiebe.ynab.db.AppDatabase;
+import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.utils.Constants;
-import com.trevorwiebe.ynab.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,8 +76,8 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
             JSONObject dataObject = new JSONObject(result).getJSONObject("data");
             JSONObject budgetObject = dataObject.getJSONObject("budget");
 
-            JSONArray payeeArray = budgetObject.getJSONArray("payees");
 
+            JSONArray payeeArray = budgetObject.getJSONArray("payees");
             ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
             for(int r=0; r<payeeArray.length(); r++){
                 JSONObject jsonObject = payeeArray.getJSONObject(r);
@@ -91,6 +90,34 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 payeeEntities.add(payeeEntity);
             }
             AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
+
+
+            JSONArray categoriesArray = budgetObject.getJSONArray("categories");
+            ArrayList<CategoryEntity> categoryEntities = new ArrayList<>();
+            for(int s=0; s<categoriesArray.length(); s++){
+                JSONObject jsonObject = categoriesArray.getJSONObject(s);
+                String categoryId = jsonObject.getString("id");
+                String category_group_id = jsonObject.getString("category_group_id");
+                String name = jsonObject.getString("name");
+                boolean hidden = jsonObject.getBoolean("hidden");
+                int hiddenInt;
+                if(hidden){
+                    hiddenInt = 1;
+                }else{
+                    hiddenInt = 0;
+                }
+                boolean deleted = jsonObject.getBoolean("deleted");
+                int deletedInt;
+                if(deleted){
+                    deletedInt = 1;
+                }else{
+                    deletedInt = 0;
+                }
+
+                CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt);
+                categoryEntities.add(categoryEntity);
+            }
+            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
 
             return Constants.RESULT_OK;
 

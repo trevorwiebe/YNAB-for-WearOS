@@ -4,30 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.wear.widget.WearableLinearLayoutManager;
-import android.support.wear.widget.WearableRecyclerView;
 import android.support.wear.widget.drawer.WearableActionDrawerView;
 import android.support.wearable.activity.WearableActivity;
-import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 
 import com.trevorwiebe.ynab.adapters.SelectPayeeRvAdapter;
-import com.trevorwiebe.ynab.connections.FetchPayees;
-import com.trevorwiebe.ynab.dataLoaders.InsertPayeeList;
 import com.trevorwiebe.ynab.dataLoaders.QueryPayees;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.utils.ItemClickListener;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-
-import static com.trevorwiebe.ynab.utils.Constants.BASE_URL;
-import static com.trevorwiebe.ynab.utils.Constants.BUDGET_ID;
-import static com.trevorwiebe.ynab.utils.Constants.PERSONAL_ACCESS_TOKEN;
 
 public class SelectPayeeActivity extends WearableActivity implements
         QueryPayees.OnQueriedPayeesReturned{

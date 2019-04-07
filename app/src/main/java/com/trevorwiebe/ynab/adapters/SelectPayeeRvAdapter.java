@@ -6,7 +6,6 @@ import android.view.View;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.trevorwiebe.ynab.R;
@@ -27,7 +26,7 @@ public class SelectPayeeRvAdapter extends RecyclerView.Adapter<SelectPayeeRvAdap
     @NonNull
     @Override
     public SelectPayeeViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.list_select_payee, viewGroup, false);
+        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.list_select, viewGroup, false);
         return new SelectPayeeViewHolder(view);
     }
 
@@ -52,7 +51,7 @@ public class SelectPayeeRvAdapter extends RecyclerView.Adapter<SelectPayeeRvAdap
         public SelectPayeeViewHolder(View view){
             super(view);
 
-            payee = view.findViewById(R.id.select_payee_item);
+            payee = view.findViewById(R.id.select_item);
         }
     }
 
