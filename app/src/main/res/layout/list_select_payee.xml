@@ -9,9 +9,17 @@
         android:id="@+id/select_payee_item"
         android:textSize="14sp"
         android:textColor="@color/white"
+        android:layout_marginLeft="@dimen/box_inset_layout_padding"
+        android:layout_marginRight="@dimen/box_inset_layout_padding"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+        android:textStyle="bold"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/dark_grey"/>
 
 </LinearLayout>

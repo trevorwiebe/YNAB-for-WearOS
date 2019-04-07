@@ -1,9 +1,14 @@
 package com.trevorwiebe.ynab.connections;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.trevorwiebe.ynab.dataLoaders.InsertPayeeList;
+import com.trevorwiebe.ynab.db.AppDatabase;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
+import com.trevorwiebe.ynab.utils.Constants;
+import com.trevorwiebe.ynab.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -16,23 +21,19 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 
-public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
 
-    private static final String TAG = "FetchPayees";
+public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
 
-    private ArrayList<PayeeEntity> mPayeesList = new ArrayList<>();
-    public OnPayeesReturned onPayeesReturned;
+    private static final String TAG = "RefreshBudgetInfo";
 
-    public FetchPayees(OnPayeesReturned onPayeesReturned){
-        this.onPayeesReturned = onPayeesReturned;
-    }
+    private Context context;
 
-    public interface OnPayeesReturned{
-        void onPayeesReturned(ArrayList<PayeeEntity> payeeEntities);
+    public RefreshBudgetInfo(Context context){
+        this.context = context;
     }
 
     @Override
-    protected ArrayList<PayeeEntity> doInBackground(URL... urls) {
+    protected Integer doInBackground(URL... urls) {
 
         URL url = urls[0];
 
@@ -45,18 +46,16 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
 
             String result = inputStreamToString(in);
 
-            return parsePayeesString(result);
+            return parseAndSaveInputStream(result);
 
         }catch (IOException e){
-            return null;
+            return Constants.IO_EXCEPTION;
         }
-
     }
 
     @Override
-    protected void onPostExecute(ArrayList<PayeeEntity> payeeEntities) {
-        super.onPostExecute(payeeEntities);
-        onPayeesReturned.onPayeesReturned(payeeEntities);
+    protected void onPostExecute(Integer resultCode) {
+        super.onPostExecute(resultCode);
     }
 
     private String inputStreamToString(InputStream inputStream) throws IOException {
@@ -71,16 +70,16 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
         }
     }
 
-    private ArrayList<PayeeEntity> parsePayeesString(String result){
+    private int parseAndSaveInputStream(String result){
 
-        ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
 
         try {
-            JSONObject mainObject = new JSONObject(result).getJSONObject("data");
-            JSONArray payeeArray = mainObject.getJSONArray("payees");
+            JSONObject dataObject = new JSONObject(result).getJSONObject("data");
+            JSONObject budgetObject = dataObject.getJSONObject("budget");
 
-            Log.d(TAG, "parsePayeesString: " + payeeArray.toString());
+            JSONArray payeeArray = budgetObject.getJSONArray("payees");
 
+            ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
             for(int r=0; r<payeeArray.length(); r++){
                 JSONObject jsonObject = payeeArray.getJSONObject(r);
                 String payeeId = jsonObject.getString("id");
@@ -89,17 +88,18 @@ public class FetchPayees extends AsyncTask<URL, Void, ArrayList<PayeeEntity>> {
                 boolean deleted = jsonObject.getBoolean("deleted");
 
                 PayeeEntity payeeEntity = new PayeeEntity(payeeId, payeeName, transfer_account_id, deleted);
-
                 payeeEntities.add(payeeEntity);
             }
+            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
 
-            return payeeEntities;
+            return Constants.RESULT_OK;
 
         }catch (JSONException e){
             Log.e(TAG, "parsePayeesString: ", e);
-            return null;
+            return Constants.PARSE_ERROR;
 
         }
 
     }
+
 }

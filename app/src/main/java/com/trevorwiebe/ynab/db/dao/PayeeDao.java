@@ -22,7 +22,7 @@ public interface PayeeDao {
     @Query("SELECT * FROM payee WHERE id = :payId")
     PayeeEntity getPayeeById(String payId);
 
-    @Query("SELECT * FROM payee WHERE deleted ")
+    @Query("SELECT * FROM payee")
     List<PayeeEntity> getPayeeList();
 
     @Update
