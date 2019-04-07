@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.trevorwiebe.ynab.db.AppDatabase;
+import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.utils.Constants;
@@ -118,6 +119,21 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 categoryEntities.add(categoryEntity);
             }
             AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
+
+            JSONArray accountArray = budgetObject.getJSONArray("accounts");
+            ArrayList<AccountEntity> accountEntities = new ArrayList<>();
+            for(int t=0; t<accountArray.length(); t++){
+                JSONObject jsonObject = accountArray.getJSONObject(t);
+                String id = jsonObject.getString("id");
+                String name = jsonObject.getString("name");
+                boolean closed = jsonObject.getBoolean("closed");
+                if(!closed) {
+                    AccountEntity accountEntity = new AccountEntity(id, name);
+                    accountEntities.add(accountEntity);
+                }
+            }
+            Log.d(TAG, "parseAndSaveInputStream: " + accountEntities);
+            AppDatabase.getAppDatabase(context).accountDao().insertAccountList(accountEntities);
 
             return Constants.RESULT_OK;
 

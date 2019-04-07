@@ -14,20 +14,26 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.trevorwiebe.ynab.connections.RefreshBudgetInfo;
+import com.trevorwiebe.ynab.dataLoaders.QueryAccounts;
 import com.trevorwiebe.ynab.dataLoaders.QueryCategoryById;
 import com.trevorwiebe.ynab.dataLoaders.QueryPayeeById;
+import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.utils.Utility;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 import static com.trevorwiebe.ynab.utils.Constants.BASE_URL;
 import static com.trevorwiebe.ynab.utils.Constants.BUDGET_ID;
 import static com.trevorwiebe.ynab.utils.Constants.PERSONAL_ACCESS_TOKEN;
 
-public class MainActivity extends WearableActivity implements QueryPayeeById.OnPayeeByIdLoaded, QueryCategoryById.OnCategoryByIdReturned {
+public class MainActivity extends WearableActivity implements
+        QueryPayeeById.OnPayeeByIdLoaded,
+        QueryCategoryById.OnCategoryByIdReturned,
+        QueryAccounts.OnAccountsReturned{
 
     private static final String TAG = "MainActivity";
 
@@ -37,9 +43,11 @@ public class MainActivity extends WearableActivity implements QueryPayeeById.OnP
 
     private PayeeEntity mSelectedPayee;
     private CategoryEntity mSelectedCategory;
+    private AccountEntity mSelectedAccount;
 
     private TextView mSelectedPayeeTv;
     private TextView mSelectedCategoryTv;
+    private TextView mSelectedAccountTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +83,7 @@ public class MainActivity extends WearableActivity implements QueryPayeeById.OnP
 
         mSelectedPayeeTv = findViewById(R.id.select_payee);
         mSelectedCategoryTv = findViewById(R.id.select_category);
+        mSelectedAccountTv = findViewById(R.id.select_account);
         TextView date = findViewById(R.id.select_date);
         Button saveTransaction = findViewById(R.id.save_transaction_btn);
 
@@ -110,6 +119,8 @@ public class MainActivity extends WearableActivity implements QueryPayeeById.OnP
 
         // Enables Always-on
         setAmbientEnabled();
+
+        new QueryAccounts(this).execute(this);
     }
 
     @Override
@@ -119,7 +130,6 @@ public class MainActivity extends WearableActivity implements QueryPayeeById.OnP
             new QueryPayeeById(MainActivity.this, payeeId).execute(MainActivity.this);
         }else if(requestCode == SELECT_CATEGORY_CODE && resultCode == RESULT_OK){
             String categoryId = data.getStringExtra("selectedCategoryId");
-            Log.d(TAG, "onActivityResult: " + categoryId);
             new QueryCategoryById(categoryId, MainActivity.this).execute(MainActivity.this);
         }
     }
@@ -147,6 +157,17 @@ public class MainActivity extends WearableActivity implements QueryPayeeById.OnP
         }else{
             mSelectedCategoryTv.setText("Select Category");
             mSelectedCategoryTv.setTypeface(null, Typeface.ITALIC);
+        }
+    }
+
+    @Override
+    public void onAccountsReturned(ArrayList<AccountEntity> accountEntities) {
+        if(accountEntities != null && accountEntities.size() == 1){
+            mSelectedAccount = accountEntities.get(0);
+            String name = mSelectedAccount.getName();
+
+            mSelectedAccountTv.setText(name);
+            mSelectedAccountTv.setTypeface(null, Typeface.BOLD);
         }
     }
 }

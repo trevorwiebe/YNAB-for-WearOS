@@ -11,7 +11,7 @@ import java.util.Locale;
 public class Utility {
 
     public static String convertMillisToDate(long millis){
-        SimpleDateFormat formatter = new SimpleDateFormat("MMM/dd/yy", Locale.getDefault());
+        SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
         Date date = new Date(millis);
         return formatter.format(date);
     }
