@@ -1,7 +1,11 @@
 package com.trevorwiebe.ynab;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
@@ -13,6 +17,12 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.trevorwiebe.ynab.connections.RefreshBudgetInfo;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccounts;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccountsById;
@@ -43,9 +53,11 @@ public class MainActivity extends WearableActivity implements
     private static final int SELECT_PAYEE_CODE = 23;
     private static final int SELECT_CATEGORY_CODE = 24;
     private static final int SELECT_ACCOUNT_CODE = 473;
+    private static final  int PERMISSION_REQUEST_LOCATION = 83;
     private static final int LAST_KNOWLEDGE_OF_SERVER = 1148;
 
     private boolean mInOrOut = false;
+    private FusedLocationProviderClient fusedLocationProviderClient;
 
     private PayeeEntity mSelectedPayee;
     private CategoryEntity mSelectedCategory;
@@ -61,6 +73,23 @@ public class MainActivity extends WearableActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
+
+            }else{
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_LOCATION);
+            }
+        }else {
+            fusedLocationProviderClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
+                        }
+                    });
+        }
 
         String strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
 //        + "&last_knowledge_of_server=" + LAST_KNOWLEDGE_OF_SERVER;
@@ -129,6 +158,20 @@ public class MainActivity extends WearableActivity implements
                 intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
                 intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Transaction Saved");
                 startActivity(intent);
+
+                mSelectedPayeeTv.setText("Select Payee");
+                mSelectedPayeeTv.setTypeface(null, Typeface.ITALIC);
+                mSelectedCategoryTv.setText("Select Category");
+                mSelectedCategoryTv.setTypeface(null, Typeface.ITALIC);
+                mSelectedAccountTv.setText("Select Account");
+                mSelectedAccountTv.setTypeface(null, Typeface.ITALIC);
+
+                transactionAmount.setText("$0.00");
+
+                mOutInBtn.setBackgroundColor(getResources().getColor(R.color.red));
+                transactionAmount.setTextColor(getResources().getColor(R.color.red));
+                mOutInBtn.setText("Outflow");
+                mInOrOut = false;
             }
         });
 
@@ -150,6 +193,30 @@ public class MainActivity extends WearableActivity implements
             String accountId = data.getStringExtra("selectedAccountId");
             Log.d(TAG, "onActivityResult: " + accountId);
             new QueryAccountsById(accountId, MainActivity.this).execute(MainActivity.this);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+
+                        //Request location updates:
+                        fusedLocationProviderClient.getLastLocation()
+                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                                    @Override
+                                    public void onSuccess(Location location) {
+                                        Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
+                                    }
+                                });
+                    }
+
+                }
+            }
         }
     }
 
