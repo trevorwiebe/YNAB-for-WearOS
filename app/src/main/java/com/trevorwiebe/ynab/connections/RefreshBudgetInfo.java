@@ -97,11 +97,17 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 String payeeName = jsonObject.getString("name");
                 String transfer_account_id = jsonObject.getString("transfer_account_id");
                 boolean deleted = jsonObject.getBoolean("deleted");
+                int deletedInt;
+                if(deleted){
+                    deletedInt = 1;
+                }else{
+                    deletedInt = 0;
+                }
 
-                PayeeEntity payeeEntity = new PayeeEntity(payeeId, payeeName, transfer_account_id, deleted);
+                PayeeEntity payeeEntity = new PayeeEntity(payeeId, payeeName, transfer_account_id, deletedInt);
                 payeeEntities.add(payeeEntity);
             }
-//            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
+            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
 
 
             JSONArray categoriesArray = budgetObject.getJSONArray("categories");

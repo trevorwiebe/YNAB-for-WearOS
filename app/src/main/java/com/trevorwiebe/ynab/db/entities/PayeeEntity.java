@@ -1,5 +1,6 @@
 package com.trevorwiebe.ynab.db.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -10,10 +11,8 @@ import androidx.annotation.Keep;
 @Entity(tableName = "payee")
 public class PayeeEntity {
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "primaryKey")
-    private int primaryKey;
-
+    @NonNull
+    @PrimaryKey()
     @ColumnInfo(name = "id")
     private String id;
 
@@ -24,9 +23,9 @@ public class PayeeEntity {
     private String transfer_account_id;
 
     @ColumnInfo(name = "deleted")
-    private boolean deleted;
+    private int deleted;
 
-    public PayeeEntity(String id, String name, String transfer_account_id, boolean deleted){
+    public PayeeEntity(@NonNull String id, String name, String transfer_account_id, int deleted){
         this.id = id;
         this.name = name;
         this.transfer_account_id = transfer_account_id;
@@ -36,19 +35,11 @@ public class PayeeEntity {
     @Ignore
     public PayeeEntity(){}
 
-    public int getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(int primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
-    public String getId() {
+    public @NonNull String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
@@ -68,11 +59,11 @@ public class PayeeEntity {
         this.transfer_account_id = transfer_account_id;
     }
 
-    public boolean isDeleted() {
+    public int getDeleted() {
         return deleted;
     }
 
-    public void setDeleted(boolean deleted) {
+    public void setDeleted(int deleted) {
         this.deleted = deleted;
     }
 }
