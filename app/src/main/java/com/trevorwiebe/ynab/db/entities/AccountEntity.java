@@ -1,5 +1,6 @@
 package com.trevorwiebe.ynab.db.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -9,27 +10,25 @@ import androidx.annotation.Keep;
 @Entity(tableName = "account")
 public class AccountEntity {
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "primaryKey")
-    private int primaryKey;
-
+    @NonNull
+    @PrimaryKey()
     @ColumnInfo(name = "id")
     private String id;
 
     @ColumnInfo(name = "name")
     private String name;
 
-    public AccountEntity(String id, String name) {
+    @ColumnInfo(name = "balance")
+    private int balance;
+
+    @ColumnInfo(name = "deleted")
+    private int deleted;
+
+    public AccountEntity(@NonNull String id, String name, int balance, int deleted) {
         this.id = id;
         this.name = name;
-    }
-
-    public int getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(int primaryKey) {
-        this.primaryKey = primaryKey;
+        this.balance = balance;
+        this.deleted = deleted;
     }
 
     public String getId() {
@@ -46,5 +45,21 @@ public class AccountEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getBalance() {
+        return balance;
+    }
+
+    public void setBalance(int balance) {
+        this.balance = balance;
+    }
+
+    public int getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(int deleted) {
+        this.deleted = deleted;
     }
 }

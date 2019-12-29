@@ -3,6 +3,7 @@
 
     <color name="colorAccent">#86C4EB</color>
 
+    <color name="transparent_gray">#80FFFFFF</color>
     <color name="redText">#F44336</color>
     <color name="greenText">#4CAF50</color>
 

@@ -14,8 +14,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -31,6 +33,7 @@ import com.trevorwiebe.ynab.dataLoaders.QueryPayeeById;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
+import com.trevorwiebe.ynab.utils.Constants;
 import com.trevorwiebe.ynab.utils.Utility;
 
 import java.lang.reflect.Type;
@@ -46,7 +49,8 @@ public class MainActivity extends WearableActivity implements
         QueryPayeeById.OnPayeeByIdLoaded,
         QueryCategoryById.OnCategoryByIdReturned,
         QueryAccounts.OnAccountsReturned,
-        QueryAccountsById.OnAccountByIdReturned{
+        QueryAccountsById.OnAccountByIdReturned,
+        RefreshBudgetInfo.OnBudgetRefresh {
 
     private static final String TAG = "MainActivity";
 
@@ -67,6 +71,7 @@ public class MainActivity extends WearableActivity implements
     private TextView mSelectedPayeeTv;
     private TextView mSelectedCategoryTv;
     private TextView mSelectedAccountTv;
+    private LinearLayout mLoadingView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,11 +96,11 @@ public class MainActivity extends WearableActivity implements
                     });
         }
 
-        String strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
-//        + "&last_knowledge_of_server=" + LAST_KNOWLEDGE_OF_SERVER;
+        String strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + LAST_KNOWLEDGE_OF_SERVER;
+
         try{
             URL url = new URL(strUrl);
-//            new RefreshBudgetInfo(this).execute(url);
+            new RefreshBudgetInfo(this, this).execute(url);
         }catch (MalformedURLException e){
             Log.e(TAG, "onCreate: ", e);
         }
@@ -106,6 +111,7 @@ public class MainActivity extends WearableActivity implements
         mSelectedPayeeTv = findViewById(R.id.select_payee);
         mSelectedCategoryTv = findViewById(R.id.select_category);
         mSelectedAccountTv = findViewById(R.id.select_account);
+        mLoadingView = findViewById(R.id.loading_view);
         TextView date = findViewById(R.id.select_date);
         Button saveTransaction = findViewById(R.id.save_transaction_btn);
 
@@ -154,15 +160,21 @@ public class MainActivity extends WearableActivity implements
         saveTransaction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                String postUrl = BASE_URL + "/budgets/" + BUDGET_ID + "/transactions";
+
                 Intent intent = new Intent(MainActivity.this, ConfirmationActivity.class);
                 intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
                 intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Transaction Saved");
                 startActivity(intent);
 
+                mSelectedPayee = null;
                 mSelectedPayeeTv.setText("Select Payee");
                 mSelectedPayeeTv.setTypeface(null, Typeface.ITALIC);
+                mSelectedCategory = null;
                 mSelectedCategoryTv.setText("Select Category");
                 mSelectedCategoryTv.setTypeface(null, Typeface.ITALIC);
+                mSelectedAccount = null;
                 mSelectedAccountTv.setText("Select Account");
                 mSelectedAccountTv.setTypeface(null, Typeface.ITALIC);
 
@@ -179,6 +191,18 @@ public class MainActivity extends WearableActivity implements
         setAmbientEnabled();
 
         new QueryAccounts(this).execute(this);
+    }
+
+    @Override
+    public void onBudgetRefresh(int resultCode) {
+        mLoadingView.setVisibility(View.GONE);
+
+        if(resultCode == Constants.RESULT_OK){
+            new QueryAccounts(this).execute(this);
+        }else{
+            Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     @Override
@@ -223,7 +247,7 @@ public class MainActivity extends WearableActivity implements
     @Override
     public void onPayeeByIdLoaded(PayeeEntity payeeEntity) {
         mSelectedPayee = payeeEntity;
-        if(payeeEntity != null) {
+        if(mSelectedPayee != null) {
             String payeeName = payeeEntity.getName();
             mSelectedPayeeTv.setText(payeeName);
             mSelectedPayeeTv.setTypeface(null, Typeface.BOLD);
@@ -236,7 +260,7 @@ public class MainActivity extends WearableActivity implements
     @Override
     public void onCategoryByIdReturned(CategoryEntity categoryEntity) {
         mSelectedCategory = categoryEntity;
-        if(categoryEntity != null){
+        if(mSelectedCategory != null){
             String categoryName = categoryEntity.getName();
             mSelectedCategoryTv.setText(categoryName);
             mSelectedCategoryTv.setTypeface(null, Typeface.BOLD);

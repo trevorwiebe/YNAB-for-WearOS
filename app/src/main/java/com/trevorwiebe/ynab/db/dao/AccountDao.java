@@ -3,6 +3,7 @@ package com.trevorwiebe.ynab.db.dao;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
 
@@ -16,10 +17,10 @@ public interface AccountDao {
     @Insert
     void insertAccount(AccountEntity accountEntity);
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAccountList(List<AccountEntity> accountEntities);
 
-    @Query("SELECT * FROM account")
+    @Query("SELECT * FROM account WHERE deleted = 0")
     List<AccountEntity> getAccountList();
 
     @Query("SELECT * FROM account WHERE id = :id")

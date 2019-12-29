@@ -26,10 +26,16 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
 
     private static final String TAG = "RefreshBudgetInfo";
 
+    private OnBudgetRefresh onBudgetRefresh;
     private Context context;
 
-    public RefreshBudgetInfo(Context context){
+    public RefreshBudgetInfo(Context context, OnBudgetRefresh onBudgetRefresh){
         this.context = context;
+        this.onBudgetRefresh = onBudgetRefresh;
+    }
+
+    public interface OnBudgetRefresh{
+        void onBudgetRefresh(int resultCode);
     }
 
     @Override
@@ -56,6 +62,7 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
     @Override
     protected void onPostExecute(Integer resultCode) {
         super.onPostExecute(resultCode);
+        onBudgetRefresh.onBudgetRefresh(resultCode);
     }
 
     private String inputStreamToString(InputStream inputStream) throws IOException {
@@ -74,9 +81,15 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
 
 
         try {
+
             JSONObject dataObject = new JSONObject(result).getJSONObject("data");
             JSONObject budgetObject = dataObject.getJSONObject("budget");
 
+//            JSONObject serverKnowledge = dataObject.getJSONObject("server_knowledge");
+
+//            Log.d(TAG, "parseAndSaveInputStream: server knowledge: " + serverKnowledge);
+
+            Log.d(TAG, "parseAndSaveInputStream: " + dataObject.toString());
 
             JSONArray payeeArray = budgetObject.getJSONArray("payees");
             ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
@@ -90,7 +103,7 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 PayeeEntity payeeEntity = new PayeeEntity(payeeId, payeeName, transfer_account_id, deleted);
                 payeeEntities.add(payeeEntity);
             }
-            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
+//            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
 
 
             JSONArray categoriesArray = budgetObject.getJSONArray("categories");
@@ -118,7 +131,7 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt);
                 categoryEntities.add(categoryEntity);
             }
-            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
+//            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
 
             JSONArray accountArray = budgetObject.getJSONArray("accounts");
             ArrayList<AccountEntity> accountEntities = new ArrayList<>();
@@ -126,11 +139,16 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 JSONObject jsonObject = accountArray.getJSONObject(t);
                 String id = jsonObject.getString("id");
                 String name = jsonObject.getString("name");
-                boolean closed = jsonObject.getBoolean("closed");
-                if(!closed) {
-                    AccountEntity accountEntity = new AccountEntity(id, name);
-                    accountEntities.add(accountEntity);
+                boolean deleted = jsonObject.getBoolean("deleted");
+                int balance = jsonObject.getInt("balance");
+                int deletedInt;
+                if(deleted) {
+                    deletedInt = 1;
+                }else{
+                    deletedInt = 0;
                 }
+                AccountEntity accountEntity = new AccountEntity(id, name, balance, deletedInt);
+                accountEntities.add(accountEntity);
             }
             Log.d(TAG, "parseAndSaveInputStream: " + accountEntities);
             AppDatabase.getAppDatabase(context).accountDao().insertAccountList(accountEntities);

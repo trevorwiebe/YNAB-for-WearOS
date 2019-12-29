@@ -8,133 +8,155 @@
     tools:context=".MainActivity"
     tools:deviceIds="wear">
 
-    <ScrollView
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/loading_view"
+            android:background="@color/transparent_gray"
+            android:translationZ="5dp"
+            android:gravity="center"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="20dp">
+
+            <ProgressBar
+                android:layout_margin="2dp"
+                android:layout_width="15dp"
+                android:layout_height="15dp"/>
+
+        </LinearLayout>
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/dark_grey"
-                android:gravity="center_horizontal"
                 android:orientation="vertical">
 
-                <Button
-                    android:background="@color/red"
-                    android:text="Outflow"
-                    android:id="@+id/in_out_btn"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <EditText
-                    android:id="@+id/transaction_amount"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingTop="16dp"
-                    android:paddingBottom="16dp"
-                    android:background="@android:color/transparent"
-                    android:cursorVisible="false"
+                    android:background="@color/dark_grey"
                     android:gravity="center_horizontal"
-                    android:inputType="numberDecimal"
-                    android:text="$0.00"
+                    android:orientation="vertical">
+
+                    <Button
+                        android:background="@color/red"
+                        android:text="Outflow"
+                        android:id="@+id/in_out_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <EditText
+                        android:id="@+id/transaction_amount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:background="@android:color/transparent"
+                        android:cursorVisible="false"
+                        android:gravity="center_horizontal"
+                        android:inputType="numberDecimal"
+                        android:text="$0.00"
+                        android:layout_gravity="center_horizontal"
+                        android:textColor="@color/red"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Payee"
+                    android:id="@+id/select_payee"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                    android:layout_marginRight="@dimen/box_inset_layout_padding"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="italic" />
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/dark_grey" />
+
+
+                <TextView
+                    android:id="@+id/select_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Select Category"
+                    android:textColor="@color/white"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                    android:layout_marginRight="@dimen/box_inset_layout_padding"
+                    android:textSize="16sp"
+                    android:textStyle="italic" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/dark_grey" />
+
+                <TextView
+                    android:id="@+id/select_account"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Select Account"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                    android:layout_marginRight="@dimen/box_inset_layout_padding"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="italic" />
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/dark_grey" />
+
+                <TextView
+                    android:id="@+id/select_date"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/box_inset_layout_padding"
+                    android:layout_marginRight="@dimen/box_inset_layout_padding"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:text="Select Date"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="italic" />
+
+                <Button
+                    android:id="@+id/save_transaction_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:textColor="@color/red"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:layout_marginBottom="48dp"
+                    android:layout_marginTop="24dp"
+                    android:background="@drawable/save_transaction_btn"
+                    android:padding="16dp"
+                    android:minHeight="16dp"
+                    android:text="Save Transaction"
+                    android:textAllCaps="false"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
 
             </LinearLayout>
+        </ScrollView>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select Payee"
-                android:id="@+id/select_payee"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:layout_marginLeft="@dimen/box_inset_layout_padding"
-                android:layout_marginRight="@dimen/box_inset_layout_padding"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="italic" />
+    </FrameLayout>
 
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/dark_grey" />
-
-
-            <TextView
-                android:id="@+id/select_category"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select Category"
-                android:textColor="@color/white"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:layout_marginLeft="@dimen/box_inset_layout_padding"
-                android:layout_marginRight="@dimen/box_inset_layout_padding"
-                android:textSize="16sp"
-                android:textStyle="italic" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/dark_grey" />
-
-            <TextView
-                android:id="@+id/select_account"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Select Account"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:layout_marginLeft="@dimen/box_inset_layout_padding"
-                android:layout_marginRight="@dimen/box_inset_layout_padding"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="italic" />
-
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:background="@color/dark_grey" />
-
-            <TextView
-                android:id="@+id/select_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/box_inset_layout_padding"
-                android:layout_marginRight="@dimen/box_inset_layout_padding"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp"
-                android:text="Select Date"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:textStyle="italic" />
-
-            <Button
-                android:id="@+id/save_transaction_btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="48dp"
-                android:layout_marginTop="24dp"
-                android:background="@drawable/save_transaction_btn"
-                android:padding="16dp"
-                android:minHeight="16dp"
-                android:text="Save Transaction"
-                android:textAllCaps="false"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:textSize="14sp" />
-
-        </LinearLayout>
-    </ScrollView>
 </androidx.wear.widget.BoxInsetLayout>
