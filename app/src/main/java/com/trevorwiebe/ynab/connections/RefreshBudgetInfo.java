@@ -9,6 +9,7 @@ import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.utils.Constants;
+import com.trevorwiebe.ynab.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -85,11 +86,8 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
             JSONObject dataObject = new JSONObject(result).getJSONObject("data");
             JSONObject budgetObject = dataObject.getJSONObject("budget");
 
-//            JSONObject serverKnowledge = dataObject.getJSONObject("server_knowledge");
-
-//            Log.d(TAG, "parseAndSaveInputStream: server knowledge: " + serverKnowledge);
-
-            Log.d(TAG, "parseAndSaveInputStream: " + dataObject.toString());
+            String serverKnowledge = dataObject.getString("server_knowledge");
+            Utility.saveServerKnowledge(context, serverKnowledge);
 
             JSONArray payeeArray = budgetObject.getJSONArray("payees");
             ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
@@ -131,7 +129,7 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt);
                 categoryEntities.add(categoryEntity);
             }
-//            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
+            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
 
             JSONArray accountArray = budgetObject.getJSONArray("accounts");
             ArrayList<AccountEntity> accountEntities = new ArrayList<>();

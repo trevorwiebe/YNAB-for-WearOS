@@ -1,5 +1,6 @@
 package com.trevorwiebe.ynab.db.entities;
 
+import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -9,10 +10,8 @@ import androidx.annotation.Keep;
 @Entity(tableName = "category")
 public class CategoryEntity {
 
-    @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "primaryKey")
-    private int primaryKey;
-
+    @NonNull
+    @PrimaryKey()
     @ColumnInfo(name = "id")
     private String id;
 
@@ -28,7 +27,7 @@ public class CategoryEntity {
     @ColumnInfo(name = "deleted")
     private int deleted;
 
-    public CategoryEntity(String id, String category_group_id, String name, int hidden, int deleted) {
+    public CategoryEntity(@NonNull String id, String category_group_id, String name, int hidden, int deleted) {
         this.id = id;
         this.category_group_id = category_group_id;
         this.name = name;
@@ -36,19 +35,11 @@ public class CategoryEntity {
         this.deleted = deleted;
     }
 
-    public int getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(int primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
-    public String getId() {
+    public @NonNull String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 

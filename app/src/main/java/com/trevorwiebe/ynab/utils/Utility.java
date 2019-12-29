@@ -1,8 +1,11 @@
 package com.trevorwiebe.ynab.utils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+
+import com.trevorwiebe.ynab.R;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,6 +26,18 @@ public class Utility {
             return true;
         }
         return false;
+    }
+
+    public static void saveServerKnowledge(Context context, String serverKnowledge){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getResources().getString(R.string.server_knowledge_name), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(context.getResources().getString(R.string.server_knowledge_key), serverKnowledge);
+        editor.apply();
+    }
+
+    public static String getServerKnowledge(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getResources().getString(R.string.server_knowledge_name), Context.MODE_PRIVATE);
+        return sharedPreferences.getString(context.getResources().getString(R.string.server_knowledge_key), "");
     }
 
 }

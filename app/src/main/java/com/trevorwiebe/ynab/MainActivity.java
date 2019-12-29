@@ -58,7 +58,6 @@ public class MainActivity extends WearableActivity implements
     private static final int SELECT_CATEGORY_CODE = 24;
     private static final int SELECT_ACCOUNT_CODE = 473;
     private static final  int PERMISSION_REQUEST_LOCATION = 83;
-    private static final int LAST_KNOWLEDGE_OF_SERVER = 1148;
 
     private boolean mInOrOut = false;
     private FusedLocationProviderClient fusedLocationProviderClient;
@@ -96,14 +95,23 @@ public class MainActivity extends WearableActivity implements
                     });
         }
 
-        String strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + LAST_KNOWLEDGE_OF_SERVER;
-
         try{
+
+            String strUrl;
+
+            String server_knowledge = Utility.getServerKnowledge(this);
+            if(server_knowledge.length() == 0){
+                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
+            }else {
+                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + server_knowledge;
+            }
+
             URL url = new URL(strUrl);
             new RefreshBudgetInfo(this, this).execute(url);
         }catch (MalformedURLException e){
             Log.e(TAG, "onCreate: ", e);
         }
+
 
         final EditText transactionAmount = findViewById(R.id.transaction_amount);
 
