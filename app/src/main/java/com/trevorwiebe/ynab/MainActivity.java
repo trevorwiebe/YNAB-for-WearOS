@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -67,6 +68,8 @@ public class MainActivity extends WearableActivity implements
     private AccountEntity mSelectedAccount;
 
     private Button mOutInBtn;
+    private ImageButton mSyncBudgetBtn;
+    private TextView mLastSynced;
     private TextView mSelectedPayeeTv;
     private TextView mSelectedCategoryTv;
     private TextView mSelectedAccountTv;
@@ -95,27 +98,12 @@ public class MainActivity extends WearableActivity implements
                     });
         }
 
-        try{
-
-            String strUrl;
-
-            String server_knowledge = Utility.getServerKnowledge(this);
-            if(server_knowledge.length() == 0){
-                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
-            }else {
-                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + server_knowledge;
-            }
-
-            URL url = new URL(strUrl);
-            new RefreshBudgetInfo(this, this).execute(url);
-        }catch (MalformedURLException e){
-            Log.e(TAG, "onCreate: ", e);
-        }
-
 
         final EditText transactionAmount = findViewById(R.id.transaction_amount);
 
         mOutInBtn = findViewById(R.id.in_out_btn);
+        mSyncBudgetBtn = findViewById(R.id.update_budget);
+        mLastSynced = findViewById(R.id.last_synced_tv);
         mSelectedPayeeTv = findViewById(R.id.select_payee);
         mSelectedCategoryTv = findViewById(R.id.select_category);
         mSelectedAccountTv = findViewById(R.id.select_account);
@@ -137,6 +125,12 @@ public class MainActivity extends WearableActivity implements
                     mOutInBtn.setText("Inflow");
                     mInOrOut = true;
                 }
+            }
+        });
+        mSyncBudgetBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                syncBudget();
             }
         });
         mSelectedPayeeTv.setOnClickListener(new View.OnClickListener() {
@@ -164,6 +158,14 @@ public class MainActivity extends WearableActivity implements
         long millisDate = System.currentTimeMillis();
         date.setText(Utility.convertMillisToDate(millisDate));
         date.setTypeface(null, Typeface.BOLD);
+
+        long lastSyncedTime = Utility.getLastSynced(this);
+        if(lastSyncedTime != 0){
+            String lastSyncedString = Utility.convertMillisToTime(lastSyncedTime);
+            mLastSynced.setText(lastSyncedString);
+        }else{
+            syncBudget();
+        }
 
         saveTransaction.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -207,6 +209,8 @@ public class MainActivity extends WearableActivity implements
 
         if(resultCode == Constants.RESULT_OK){
             new QueryAccounts(this).execute(this);
+            Utility.saveLastSynced(MainActivity.this, System.currentTimeMillis());
+            mLastSynced.setText(Utility.convertMillisToTime(System.currentTimeMillis()));
         }else{
             Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
         }
@@ -246,7 +250,6 @@ public class MainActivity extends WearableActivity implements
                                     }
                                 });
                     }
-
                 }
             }
         }
@@ -299,6 +302,28 @@ public class MainActivity extends WearableActivity implements
         }else{
             mSelectedAccountTv.setText("Select Account");
             mSelectedAccountTv.setTypeface(null, Typeface.ITALIC);
+        }
+    }
+
+    private void syncBudget(){
+
+        mLoadingView.setVisibility(View.VISIBLE);
+        try{
+            String strUrl;
+
+            String server_knowledge = Utility.getServerKnowledge(this);
+            if(server_knowledge.length() == 0){
+                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
+            }else {
+                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + server_knowledge;
+            }
+
+            URL url = new URL(strUrl);
+            new RefreshBudgetInfo(this, this).execute(url);
+        }catch (MalformedURLException e){
+            Log.e(TAG, "onCreate: ", e);
+            mLoadingView.setVisibility(View.GONE);
+            Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
         }
     }
 }

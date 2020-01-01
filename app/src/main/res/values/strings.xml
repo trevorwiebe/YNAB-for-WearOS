@@ -8,5 +8,7 @@
 
     <string name="server_knowledge_name" translatable="false">server_knowledge_name</string>
     <string name="server_knowledge_key" translatable="false">server_knowledge_key</string>
+    <string name="last_synced_name" translatable="false">last_synced_name</string>
+    <string name="last_synced_key" translatable="false">last_synced_key</string>
 
 </resources>

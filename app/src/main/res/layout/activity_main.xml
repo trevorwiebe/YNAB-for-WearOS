@@ -17,13 +17,17 @@
             android:background="@color/transparent_gray"
             android:translationZ="5dp"
             android:gravity="center"
+            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="20dp">
+            android:layout_height="30dp">
 
             <ProgressBar
+                android:indeterminate="true"
+                android:indeterminateTintMode="src_atop"
+                android:indeterminateTint="@color/black"
                 android:layout_margin="2dp"
-                android:layout_width="15dp"
-                android:layout_height="15dp"/>
+                android:layout_width="20dp"
+                android:layout_height="20dp"/>
 
         </LinearLayout>
 
@@ -73,8 +77,8 @@
                     android:layout_height="wrap_content"
                     android:text="Select Payee"
                     android:id="@+id/select_payee"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:layout_marginLeft="@dimen/box_inset_layout_padding"
                     android:layout_marginRight="@dimen/box_inset_layout_padding"
                     android:textColor="@color/white"
@@ -94,8 +98,8 @@
                     android:layout_height="wrap_content"
                     android:text="Select Category"
                     android:textColor="@color/white"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:layout_marginLeft="@dimen/box_inset_layout_padding"
                     android:layout_marginRight="@dimen/box_inset_layout_padding"
                     android:textSize="16sp"
@@ -111,8 +115,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Select Account"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:layout_marginLeft="@dimen/box_inset_layout_padding"
                     android:layout_marginRight="@dimen/box_inset_layout_padding"
                     android:textColor="@color/white"
@@ -131,8 +135,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/box_inset_layout_padding"
                     android:layout_marginRight="@dimen/box_inset_layout_padding"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
+                    android:paddingTop="16dp"
+                    android:paddingBottom="16dp"
                     android:text="Select Date"
                     android:textColor="@color/white"
                     android:textSize="16sp"
@@ -143,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginBottom="48dp"
+                    android:layout_marginBottom="36dp"
                     android:layout_marginTop="24dp"
                     android:background="@drawable/save_transaction_btn"
                     android:padding="16dp"
@@ -153,6 +157,27 @@
                     android:textStyle="bold"
                     android:textColor="@color/white"
                     android:textSize="14sp" />
+
+                <TextView
+                    android:gravity="center"
+                    android:id="@+id/last_synced_tv"
+                    android:layout_marginBottom="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+
+                <ImageButton
+                    android:contentDescription="@null"
+                    android:id="@+id/update_budget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="8dp"
+                    android:src="@drawable/ic_sync_white_24dp"
+                    android:background="@drawable/sync_budget_background"
+                    android:padding="16dp"
+                    android:minHeight="16dp"
+                    android:layout_marginBottom="48dp"
+                    android:textColor="@color/white" />
 
             </LinearLayout>
         </ScrollView>

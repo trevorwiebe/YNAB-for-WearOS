@@ -19,6 +19,12 @@ public class Utility {
         return formatter.format(date);
     }
 
+    public static String convertMillisToTime(long millis){
+        SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yy - h:mm a", Locale.getDefault());
+        Date date = new Date(millis);
+        return formatter.format(date);
+    }
+
     public static boolean hasInternetConnection(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
@@ -38,6 +44,18 @@ public class Utility {
     public static String getServerKnowledge(Context context){
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getResources().getString(R.string.server_knowledge_name), Context.MODE_PRIVATE);
         return sharedPreferences.getString(context.getResources().getString(R.string.server_knowledge_key), "");
+    }
+
+    public static void saveLastSynced(Context context, long lastSynced){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getResources().getString(R.string.last_synced_name), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putLong(context.getResources().getString(R.string.last_synced_key), lastSynced);
+        editor.apply();
+    }
+
+    public static long getLastSynced(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getResources().getString(R.string.last_synced_name), Context.MODE_PRIVATE);
+        return sharedPreferences.getLong(context.getResources().getString(R.string.last_synced_key), 0);
     }
 
 }
