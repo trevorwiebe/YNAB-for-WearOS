@@ -21,21 +21,25 @@ public class AccountEntity {
     @ColumnInfo(name = "balance")
     private int balance;
 
+    @ColumnInfo(name = "on_budget")
+    private int on_budget;
+
     @ColumnInfo(name = "deleted")
     private int deleted;
 
-    public AccountEntity(@NonNull String id, String name, int balance, int deleted) {
+    public AccountEntity(@NonNull String id, String name, int balance, int on_budget, int deleted) {
         this.id = id;
         this.name = name;
         this.balance = balance;
+        this.on_budget = on_budget;
         this.deleted = deleted;
     }
 
-    public String getId() {
+    public @NonNull String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(@NonNull String id) {
         this.id = id;
     }
 
@@ -53,6 +57,14 @@ public class AccountEntity {
 
     public void setBalance(int balance) {
         this.balance = balance;
+    }
+
+    public int getOn_budget() {
+        return on_budget;
+    }
+
+    public void setOn_budget(int on_budget) {
+        this.on_budget = on_budget;
     }
 
     public int getDeleted() {

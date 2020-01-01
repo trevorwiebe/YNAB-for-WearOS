@@ -20,7 +20,7 @@ public interface AccountDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAccountList(List<AccountEntity> accountEntities);
 
-    @Query("SELECT * FROM account WHERE deleted = 0")
+    @Query("SELECT * FROM account WHERE deleted = 0 ORDER BY on_budget")
     List<AccountEntity> getAccountList();
 
     @Query("SELECT * FROM account WHERE id = :id")

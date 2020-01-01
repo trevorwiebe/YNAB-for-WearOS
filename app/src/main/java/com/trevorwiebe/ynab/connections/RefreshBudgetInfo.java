@@ -8,6 +8,7 @@ import com.trevorwiebe.ynab.db.AppDatabase;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
+import com.trevorwiebe.ynab.db.entities.PayeeLocationEntity;
 import com.trevorwiebe.ynab.utils.Constants;
 import com.trevorwiebe.ynab.utils.Utility;
 
@@ -143,19 +144,51 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                 JSONObject jsonObject = accountArray.getJSONObject(t);
                 String id = jsonObject.getString("id");
                 String name = jsonObject.getString("name");
-                boolean deleted = jsonObject.getBoolean("deleted");
+
                 int balance = jsonObject.getInt("balance");
+
+                boolean deleted = jsonObject.getBoolean("deleted");
                 int deletedInt;
                 if(deleted) {
                     deletedInt = 1;
                 }else{
                     deletedInt = 0;
                 }
-                AccountEntity accountEntity = new AccountEntity(id, name, balance, deletedInt);
+
+                boolean on_budget = jsonObject.getBoolean("on_budget");
+                int on_budget_int;
+                if(on_budget) {
+                    on_budget_int = 0;
+                }else{
+                    on_budget_int = 1;
+                }
+                AccountEntity accountEntity = new AccountEntity(id, name, balance, on_budget_int, deletedInt);
                 accountEntities.add(accountEntity);
             }
-            Log.d(TAG, "parseAndSaveInputStream: " + accountEntities);
             AppDatabase.getAppDatabase(context).accountDao().insertAccountList(accountEntities);
+
+            JSONArray payeeLocationArray = budgetObject.getJSONArray("payee_locations");
+            ArrayList<PayeeLocationEntity> payeeLocationEntities = new ArrayList<>();
+            for(int l=0; l<payeeLocationArray.length(); l++){
+                JSONObject payeeLocationObject = payeeLocationArray.getJSONObject(l);
+
+                String id = payeeLocationObject.getString("id");
+                String payee_id = payeeLocationObject.getString("payee_id");
+                String latitude = payeeLocationObject.getString("latitude");
+                String longitude = payeeLocationObject.getString("longitude");
+                boolean deleted = payeeLocationObject.getBoolean("deleted");
+                int deletedInt;
+                if(deleted){
+                    deletedInt = 1;
+                }else{
+                    deletedInt = 0;
+                }
+
+                PayeeLocationEntity payeeLocationEntity = new PayeeLocationEntity(id, payee_id, latitude, longitude, deletedInt);
+                payeeLocationEntities.add(payeeLocationEntity);
+            }
+
+            AppDatabase.getAppDatabase(context).payeeLocationDao().insertPayeeLocationEntities(payeeLocationEntities);
 
             return Constants.RESULT_OK;
 
