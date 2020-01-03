@@ -2,6 +2,7 @@ package com.trevorwiebe.ynab;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -9,7 +10,10 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -46,6 +50,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 import static com.trevorwiebe.ynab.utils.Constants.BASE_URL;
@@ -57,7 +62,8 @@ public class MainActivity extends WearableActivity implements
         QueryCategoryById.OnCategoryByIdReturned,
         QueryAccounts.OnAccountsReturned,
         QueryAccountsById.OnAccountByIdReturned,
-        RefreshBudgetInfo.OnBudgetRefresh {
+        RefreshBudgetInfo.OnBudgetRefresh,
+        TextWatcher{
 
     private static final String TAG = "MainActivity";
 
@@ -74,6 +80,7 @@ public class MainActivity extends WearableActivity implements
     private AccountEntity mSelectedAccount;
 
     private Button mOutInBtn;
+    private EditText mTransactionEt;
     private ImageButton mSyncBudgetBtn;
     private TextView mLastSynced;
     private TextView mSelectedPayeeTv;
@@ -105,7 +112,8 @@ public class MainActivity extends WearableActivity implements
         }
 
 
-        final EditText transactionAmount = findViewById(R.id.transaction_amount);
+        mTransactionEt = findViewById(R.id.transaction_amount);
+        mTransactionEt.addTextChangedListener(this);
 
         mOutInBtn = findViewById(R.id.in_out_btn);
         mSyncBudgetBtn = findViewById(R.id.update_budget);
@@ -122,12 +130,12 @@ public class MainActivity extends WearableActivity implements
             public void onClick(View v) {
                 if(mInOrOut){
                     mOutInBtn.setBackgroundColor(getResources().getColor(R.color.red));
-                    transactionAmount.setTextColor(getResources().getColor(R.color.red));
+                    mTransactionEt.setTextColor(getResources().getColor(R.color.red));
                     mOutInBtn.setText("Outflow");
                     mInOrOut = false;
                 }else{
                     mOutInBtn.setBackgroundColor(getResources().getColor(R.color.green));
-                    transactionAmount.setTextColor(getResources().getColor(R.color.green));
+                    mTransactionEt.setTextColor(getResources().getColor(R.color.green));
                     mOutInBtn.setText("Inflow");
                     mInOrOut = true;
                 }
@@ -181,7 +189,7 @@ public class MainActivity extends WearableActivity implements
 
                 String accountId = mSelectedAccount.getId();
                 String date = Utility.convertMillisToDate(System.currentTimeMillis());
-                long amount = Long.parseLong(transactionAmount.getText().toString());
+                long amount = Long.parseLong(mTransactionEt.getText().toString());
                 String payee_id = mSelectedPayee.getId();
                 String payee_name = mSelectedPayee.getName();
                 String category_id = mSelectedCategory.getId();
@@ -228,10 +236,10 @@ public class MainActivity extends WearableActivity implements
                 mSelectedAccountTv.setText("Select Account");
                 mSelectedAccountTv.setTypeface(null, Typeface.ITALIC);
 
-                transactionAmount.setText("$0.00");
+                mTransactionEt.setText("$0.00");
 
                 mOutInBtn.setBackgroundColor(getResources().getColor(R.color.red));
-                transactionAmount.setTextColor(getResources().getColor(R.color.red));
+                mTransactionEt.setTextColor(getResources().getColor(R.color.red));
                 mOutInBtn.setText("Outflow");
                 mInOrOut = false;
             }
@@ -254,6 +262,36 @@ public class MainActivity extends WearableActivity implements
         }else{
             Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
         }
+
+    }
+
+    private String current = "";
+
+    @Override
+    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        if(!s.toString().equals(current)){
+           mTransactionEt.removeTextChangedListener(this);
+
+                String cleanString = s.toString().replaceAll("[$,.]", "");
+
+                double parsed = Double.parseDouble(cleanString);
+                String formatted = NumberFormat.getCurrencyInstance().format((parsed/100));
+
+                current = formatted;
+           mTransactionEt.setText(formatted);
+           mTransactionEt.setSelection(formatted.length());
+
+           mTransactionEt.addTextChangedListener(this);
+        }
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
 
     }
 

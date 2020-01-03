@@ -64,6 +64,8 @@
                         android:cursorVisible="false"
                         android:gravity="center_horizontal"
                         android:inputType="numberDecimal"
+                        android:selectAllOnFocus="true"
+                        android:textDirection="rtl"
                         android:text="$0.00"
                         android:layout_gravity="center_horizontal"
                         android:textColor="@color/red"
