@@ -8,14 +8,16 @@ public class Transaction {
     private String payee_id;
     private String payee_name;
     private String category_id;
+    private String cleared;
 
-    public Transaction(String account_id, String date, long amount, String payee_id, String payee_name, String category_id) {
+    public Transaction(String account_id, String date, long amount, String payee_id, String payee_name, String category_id, String cleared) {
         this.account_id = account_id;
         this.date = date;
         this.amount = amount;
         this.payee_id = payee_id;
         this.payee_name = payee_name;
         this.category_id = category_id;
+        this.cleared = cleared;
     }
 
     public String getAccount_id() {
@@ -64,5 +66,13 @@ public class Transaction {
 
     public void setCategory_id(String category_id) {
         this.category_id = category_id;
+    }
+
+    public String getCleared() {
+        return cleared;
+    }
+
+    public void setCleared(String cleared) {
+        this.cleared = cleared;
     }
 }

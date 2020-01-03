@@ -26,6 +26,7 @@ import androidx.core.content.ContextCompat;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.trevorwiebe.ynab.connections.PostTransaction;
 import com.trevorwiebe.ynab.connections.RefreshBudgetInfo;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccounts;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccountsById;
@@ -34,8 +35,13 @@ import com.trevorwiebe.ynab.dataLoaders.QueryPayeeById;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
+import com.trevorwiebe.ynab.objects.Transaction;
 import com.trevorwiebe.ynab.utils.Constants;
 import com.trevorwiebe.ynab.utils.Utility;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
@@ -172,6 +178,40 @@ public class MainActivity extends WearableActivity implements
             public void onClick(View v) {
 
                 String postUrl = BASE_URL + "/budgets/" + BUDGET_ID + "/transactions";
+
+                String accountId = mSelectedAccount.getId();
+                String date = Utility.convertMillisToDate(System.currentTimeMillis());
+                long amount = Long.parseLong(transactionAmount.getText().toString());
+                String payee_id = mSelectedPayee.getId();
+                String payee_name = mSelectedPayee.getName();
+                String category_id = mSelectedCategory.getId();
+
+                try {
+                    JSONObject transactionList = new JSONObject();
+
+                    JSONObject transaction = new JSONObject();
+                    transaction.put("account_id", accountId);
+                    transaction.put("date", date);
+                    transaction.put("amount", amount);
+                    transaction.put("payee_id", payee_id);
+                    transaction.put("payee_name", payee_name);
+                    transaction.put("category_id", category_id);
+                    transaction.put("memo", "");
+                    transaction.put("cleared", "cleared");
+                    transaction.put("approved", true);
+                    transaction.put("flag_color", "");
+                    transaction.put("import_id", "");
+
+                    transactionList.put("transaction", transaction);
+
+                    Log.d(TAG, "onClick: " +transactionList.toString());
+
+//                    new PostTransaction().execute(postUrl, transactionList.toString());
+
+                }catch (JSONException e){
+                    Toast.makeText(MainActivity.this, "An error occurred while trying to post this transaction", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "onClick: ", e);
+                }
 
                 Intent intent = new Intent(MainActivity.this, ConfirmationActivity.class);
                 intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
