@@ -20,7 +20,7 @@ public interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertCategoryList(List<CategoryEntity> categoryEntities);
 
-    @Query("SELECT * FROM category WHERE deleted = 0 AND hidden = 0")
+    @Query("SELECT * FROM category WHERE deleted = 0 AND hidden = 0 ORDER BY name")
     List<CategoryEntity> getCategoryList();
 
     @Query("SELECT * FROM category WHERE id = :id")
