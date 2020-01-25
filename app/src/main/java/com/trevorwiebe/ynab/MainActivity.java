@@ -1,8 +1,6 @@
 package com.trevorwiebe.ynab;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
@@ -13,41 +11,31 @@ import android.support.wearable.activity.WearableActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.trevorwiebe.ynab.connections.PostTransaction;
 import com.trevorwiebe.ynab.connections.RefreshBudgetInfo;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccounts;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccountsById;
 import com.trevorwiebe.ynab.dataLoaders.QueryCategoryById;
 import com.trevorwiebe.ynab.dataLoaders.QueryPayeeById;
+import com.trevorwiebe.ynab.dataLoaders.QueryPayeeLocationWithLatAndLong;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
-import com.trevorwiebe.ynab.objects.Transaction;
+import com.trevorwiebe.ynab.db.entities.PayeeLocationEntity;
 import com.trevorwiebe.ynab.utils.Constants;
 import com.trevorwiebe.ynab.utils.Utility;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
@@ -63,7 +51,8 @@ public class MainActivity extends WearableActivity implements
         QueryAccounts.OnAccountsReturned,
         QueryAccountsById.OnAccountByIdReturned,
         RefreshBudgetInfo.OnBudgetRefresh,
-        TextWatcher{
+        TextWatcher,
+        QueryPayeeLocationWithLatAndLong.OnPayeeLocationReturned{
 
     private static final String TAG = "MainActivity";
 
@@ -73,7 +62,8 @@ public class MainActivity extends WearableActivity implements
     private static final  int PERMISSION_REQUEST_LOCATION = 83;
 
     private boolean mInOrOut = false;
-    private FusedLocationProviderClient fusedLocationProviderClient;
+//    private FusedLocationProviderClient fusedLocationProviderClient;
+    private String currentText = "";
 
     private PayeeEntity mSelectedPayee;
     private CategoryEntity mSelectedCategory;
@@ -93,23 +83,24 @@ public class MainActivity extends WearableActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-
-            }else{
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_LOCATION);
-            }
-        }else {
-            fusedLocationProviderClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
-                        }
-                    });
-        }
+//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+//
+//        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+//            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
+//
+//            }else{
+//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_LOCATION);
+//            }
+//        }else {
+//            fusedLocationProviderClient.getLastLocation()
+//                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+//                        @Override
+//                        public void onSuccess(Location location) {
+//                            Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
+//                            new QueryPayeeLocationWithLatAndLong(location.getLatitude(), location.getLongitude(), MainActivity.this).execute(MainActivity.this);
+//                        }
+//                    });
+//        }
 
 
         mTransactionEt = findViewById(R.id.transaction_amount);
@@ -185,46 +176,83 @@ public class MainActivity extends WearableActivity implements
             @Override
             public void onClick(View v) {
 
+                Intent transactionFinishedIntent = new Intent(MainActivity.this, ConfirmationActivity.class);
+
                 String postUrl = BASE_URL + "/budgets/" + BUDGET_ID + "/transactions";
 
-                String accountId = mSelectedAccount.getId();
+                boolean shouldSaveTransaction = true;
+
                 String date = Utility.convertMillisToDate(System.currentTimeMillis());
-                long amount = Long.parseLong(mTransactionEt.getText().toString());
-                String payee_id = mSelectedPayee.getId();
-                String payee_name = mSelectedPayee.getName();
-                String category_id = mSelectedCategory.getId();
+                double amount = Double.parseDouble(mTransactionEt.getText().toString().substring(1));
 
-                try {
-                    JSONObject transactionList = new JSONObject();
+                String payee_id = "";
+                String payee_name = "";
+                String category_id = "";
+                String accountId = "";
 
-                    JSONObject transaction = new JSONObject();
-                    transaction.put("account_id", accountId);
-                    transaction.put("date", date);
-                    transaction.put("amount", amount);
-                    transaction.put("payee_id", payee_id);
-                    transaction.put("payee_name", payee_name);
-                    transaction.put("category_id", category_id);
-                    transaction.put("memo", "");
-                    transaction.put("cleared", "cleared");
-                    transaction.put("approved", true);
-                    transaction.put("flag_color", "");
-                    transaction.put("import_id", "");
-
-                    transactionList.put("transaction", transaction);
-
-                    Log.d(TAG, "onClick: " +transactionList.toString());
-
-//                    new PostTransaction().execute(postUrl, transactionList.toString());
-
-                }catch (JSONException e){
-                    Toast.makeText(MainActivity.this, "An error occurred while trying to post this transaction", Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "onClick: ", e);
+                if(mSelectedPayee == null){
+                    shouldSaveTransaction = false;
+                    transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.FAILURE_ANIMATION);
+                    transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "No Payee Selected");
+                }else{
+                    payee_id = mSelectedPayee.getId();
+                    payee_name = mSelectedPayee.getName();
                 }
 
-                Intent intent = new Intent(MainActivity.this, ConfirmationActivity.class);
-                intent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
-                intent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Transaction Saved");
-                startActivity(intent);
+                if(shouldSaveTransaction) {
+                    if (mSelectedCategory == null) {
+                        shouldSaveTransaction = false;
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.FAILURE_ANIMATION);
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "No Category Selected");
+                    } else {
+                        category_id = mSelectedCategory.getId();
+                    }
+                }
+
+                if(shouldSaveTransaction) {
+                    if (mSelectedAccount == null) {
+                        shouldSaveTransaction = false;
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.FAILURE_ANIMATION);
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "No Account Selected");
+                    } else {
+                        accountId = mSelectedAccount.getId();
+                    }
+                }
+
+                if(shouldSaveTransaction) {
+                    try {
+                        JSONObject transactionList = new JSONObject();
+
+                        JSONObject transaction = new JSONObject();
+                        transaction.put("account_id", accountId);
+                        transaction.put("date", date);
+                        transaction.put("amount", amount);
+                        transaction.put("payee_id", payee_id);
+                        transaction.put("payee_name", payee_name);
+                        transaction.put("category_id", category_id);
+                        transaction.put("memo", "");
+                        transaction.put("cleared", "cleared");
+                        transaction.put("approved", true);
+                        transaction.put("flag_color", "");
+                        transaction.put("import_id", "");
+
+                        transactionList.put("transaction", transaction);
+
+                        Log.d(TAG, "onClick: " + transactionList.toString());
+
+                        new PostTransaction().execute(postUrl, transactionList.toString());
+
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.SUCCESS_ANIMATION);
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Transaction Saved");
+
+                    } catch (JSONException e) {
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE, ConfirmationActivity.EXTRA_ANIMATION_TYPE);
+                        transactionFinishedIntent.putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Transaction Failed");
+                        Log.e(TAG, "onClick: ", e);
+                    }
+                }
+
+                startActivity(transactionFinishedIntent);
 
                 mSelectedPayee = null;
                 mSelectedPayeeTv.setText("Select Payee");
@@ -265,8 +293,6 @@ public class MainActivity extends WearableActivity implements
 
     }
 
-    private String current = "";
-
     @Override
     public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
@@ -274,7 +300,7 @@ public class MainActivity extends WearableActivity implements
 
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
-        if(!s.toString().equals(current)){
+        if(!s.toString().equals(currentText)){
            mTransactionEt.removeTextChangedListener(this);
 
                 String cleanString = s.toString().replaceAll("[$,.]", "");
@@ -282,7 +308,7 @@ public class MainActivity extends WearableActivity implements
                 double parsed = Double.parseDouble(cleanString);
                 String formatted = NumberFormat.getCurrencyInstance().format((parsed/100));
 
-                current = formatted;
+                currentText = formatted;
            mTransactionEt.setText(formatted);
            mTransactionEt.setSelection(formatted.length());
 
@@ -310,28 +336,28 @@ public class MainActivity extends WearableActivity implements
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
-                        //Request location updates:
-                        fusedLocationProviderClient.getLastLocation()
-                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                                    @Override
-                                    public void onSuccess(Location location) {
-                                        Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
-                                    }
-                                });
-                    }
-                }
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        switch (requestCode) {
+//            case PERMISSION_REQUEST_LOCATION: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//
+//                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+//
+//                        //Request location updates:
+//                        fusedLocationProviderClient.getLastLocation()
+//                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+//                                    @Override
+//                                    public void onSuccess(Location location) {
+//                                        Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
+//                                    }
+//                                });
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     @Override
     public void onPayeeByIdLoaded(PayeeEntity payeeEntity) {
@@ -404,4 +430,13 @@ public class MainActivity extends WearableActivity implements
             Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
         }
     }
+
+    @Override
+    public void onPayeeLocationReturned(PayeeLocationEntity payeeLocationEntity) {
+        if(payeeLocationEntity != null) {
+            String payeeId = payeeLocationEntity.getPayee_id();
+            new QueryPayeeById(MainActivity.this, payeeId).execute(MainActivity.this);
+        }
+    }
+
 }

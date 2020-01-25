@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static androidx.constraintlayout.widget.Constraints.TAG;
+
 public class PostTransaction extends AsyncTask<String, Void, String> {
 
     @Override
@@ -52,6 +54,7 @@ public class PostTransaction extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
-        Log.e("TAG", result); // this is expecting a response code to be sent from your server upon receiving the POST data
+        Log.d(TAG, "onPostExecute: here");
+        Log.d(TAG, result); // this is expecting a response code to be sent from your server upon receiving the POST data
     }
 }

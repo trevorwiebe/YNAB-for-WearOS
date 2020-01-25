@@ -6,8 +6,6 @@ import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 import androidx.room.Update;
-
-import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeLocationEntity;
 
 import java.util.List;
@@ -21,8 +19,8 @@ public interface PayeeLocationDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertPayeeLocationEntities(List<PayeeLocationEntity> payeeLocationEntities);
 
-    @Query("SELECT * FROM payeeLocation WHERE latitude = :latitude AND longitude = :longitude")
-    PayeeLocationEntity getPayeeWithLatAndLong(String latitude, String longitude);
+    @Query("SELECT * FROM payeeLocation WHERE (latitude BETWEEN (:startLat + 0.005000) AND (:startLat - 0.005000)) AND (longitude BETWEEN (:startLong + 0.005000) AND (:startLong - 0.005000))")
+    PayeeLocationEntity getPayeeWithLatAndLong(double startLat, double startLong);
 
     @Update
     void updatePayeeLocation(PayeeLocationEntity payeeLocationEntity);
