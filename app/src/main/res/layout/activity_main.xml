@@ -48,7 +48,7 @@
                     android:orientation="vertical">
 
                     <Button
-                        android:background="@color/red"
+                        android:background="@color/redText"
                         android:text="Outflow"
                         android:id="@+id/in_out_btn"
                         android:layout_width="match_parent"
@@ -68,7 +68,7 @@
                         android:textDirection="rtl"
                         android:text="$0.00"
                         android:layout_gravity="center_horizontal"
-                        android:textColor="@color/red"
+                        android:textColor="@color/redText"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 

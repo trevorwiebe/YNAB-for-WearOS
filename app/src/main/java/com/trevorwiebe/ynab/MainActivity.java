@@ -20,6 +20,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.work.BackoffPolicy;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkInfo;
+import androidx.work.WorkManager;
+
 import com.trevorwiebe.ynab.connections.PostTransaction;
 import com.trevorwiebe.ynab.connections.RefreshBudgetInfo;
 import com.trevorwiebe.ynab.dataLoaders.QueryAccounts;
@@ -32,6 +47,7 @@ import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeLocationEntity;
 import com.trevorwiebe.ynab.utils.Constants;
+import com.trevorwiebe.ynab.utils.SyncToDatabaseWorkManger;
 import com.trevorwiebe.ynab.utils.Utility;
 
 import org.json.JSONException;
@@ -41,6 +57,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import static com.trevorwiebe.ynab.utils.Constants.BASE_URL;
 import static com.trevorwiebe.ynab.utils.Constants.BUDGET_ID;
@@ -60,15 +77,16 @@ public class MainActivity extends WearableActivity implements
     private static final int SELECT_PAYEE_CODE = 23;
     private static final int SELECT_CATEGORY_CODE = 24;
     private static final int SELECT_ACCOUNT_CODE = 473;
-    private static final  int PERMISSION_REQUEST_LOCATION = 83;
 
     private boolean mInOrOut = false;
-//    private FusedLocationProviderClient fusedLocationProviderClient;
     private String currentText = "";
 
     private PayeeEntity mSelectedPayee;
     private CategoryEntity mSelectedCategory;
     private AccountEntity mSelectedAccount;
+
+    private WorkManager mWorkManager;
+    private PeriodicWorkRequest mPeriodicWorkRequest;
 
     private Button mOutInBtn;
     private EditText mTransactionEt;
@@ -84,28 +102,23 @@ public class MainActivity extends WearableActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-//
-//        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-//            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
-//
-//            }else{
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_REQUEST_LOCATION);
-//            }
-//        }else {
-//            fusedLocationProviderClient.getLastLocation()
-//                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-//                        @Override
-//                        public void onSuccess(Location location) {
-//                            Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
-//                            new QueryPayeeLocationWithLatAndLong(location.getLatitude(), location.getLongitude(), MainActivity.this).execute(MainActivity.this);
-//                        }
-//                    });
-//        }
-
 
         mTransactionEt = findViewById(R.id.transaction_amount);
         mTransactionEt.addTextChangedListener(this);
+
+
+        mWorkManager = WorkManager.getInstance(this);
+
+        Constraints workerConstraint = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        mPeriodicWorkRequest = new PeriodicWorkRequest.Builder(SyncToDatabaseWorkManger.class, 1, TimeUnit.HOURS)
+                .setConstraints(workerConstraint)
+                .build();
+
+        mWorkManager.enqueueUniquePeriodicWork("hourly_sync", ExistingPeriodicWorkPolicy.KEEP, mPeriodicWorkRequest);
+
 
         mOutInBtn = findViewById(R.id.in_out_btn);
         mSyncBudgetBtn = findViewById(R.id.update_budget);
@@ -121,13 +134,13 @@ public class MainActivity extends WearableActivity implements
             @Override
             public void onClick(View v) {
                 if(mInOrOut){
-                    mOutInBtn.setBackgroundColor(getResources().getColor(R.color.red));
-                    mTransactionEt.setTextColor(getResources().getColor(R.color.red));
+                    mOutInBtn.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.redText));
+                    mTransactionEt.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.redText));
                     mOutInBtn.setText("Outflow");
                     mInOrOut = false;
                 }else{
-                    mOutInBtn.setBackgroundColor(getResources().getColor(R.color.green));
-                    mTransactionEt.setTextColor(getResources().getColor(R.color.green));
+                    mOutInBtn.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.greenText));
+                    mTransactionEt.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.greenText));
                     mOutInBtn.setText("Inflow");
                     mInOrOut = true;
                 }
@@ -267,8 +280,8 @@ public class MainActivity extends WearableActivity implements
 
                 mTransactionEt.setText("$0.00");
 
-                mOutInBtn.setBackgroundColor(getResources().getColor(R.color.red));
-                mTransactionEt.setTextColor(getResources().getColor(R.color.red));
+                mOutInBtn.setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.redText));
+                mTransactionEt.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.redText));
                 mOutInBtn.setText("Outflow");
                 mInOrOut = false;
             }
@@ -337,29 +350,6 @@ public class MainActivity extends WearableActivity implements
         }
     }
 
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-//        switch (requestCode) {
-//            case PERMISSION_REQUEST_LOCATION: {
-//                // If request is cancelled, the result arrays are empty.
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//
-//                    if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//
-//                        //Request location updates:
-//                        fusedLocationProviderClient.getLastLocation()
-//                                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-//                                    @Override
-//                                    public void onSuccess(Location location) {
-//                                        Log.d(TAG, "onSuccess: " + location.getLatitude() + " " + location.getLongitude());
-//                                    }
-//                                });
-//                    }
-//                }
-//            }
-//        }
-//    }
-
     @Override
     public void onPayeeByIdLoaded(PayeeEntity payeeEntity) {
         mSelectedPayee = payeeEntity;
@@ -411,25 +401,8 @@ public class MainActivity extends WearableActivity implements
     }
 
     private void syncBudget(){
-
         mLoadingView.setVisibility(View.VISIBLE);
-        try{
-            String strUrl;
-
-            String server_knowledge = Utility.getServerKnowledge(this);
-            if(server_knowledge.length() == 0){
-                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
-            }else {
-                strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + server_knowledge;
-            }
-
-            URL url = new URL(strUrl);
-            new RefreshBudgetInfo(this, this).execute(url);
-        }catch (MalformedURLException e){
-            Log.e(TAG, "onCreate: ", e);
-            mLoadingView.setVisibility(View.GONE);
-            Toast.makeText(this, "An error occurred while trying to connect to the cloud", Toast.LENGTH_SHORT).show();
-        }
+        new RefreshBudgetInfo(this, this).execute();
     }
 
     @Override
@@ -439,5 +412,4 @@ public class MainActivity extends WearableActivity implements
             new QueryPayeeById(MainActivity.this, payeeId).execute(MainActivity.this);
         }
     }
-
 }

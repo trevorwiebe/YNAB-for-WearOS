@@ -1,18 +1,18 @@
-package com.trevorwiebe.ynab.connections;
+package com.trevorwiebe.ynab.utils;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import com.trevorwiebe.ynab.MainActivity;
 import com.trevorwiebe.ynab.db.AppDatabase;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 import com.trevorwiebe.ynab.db.entities.CategoryEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeEntity;
 import com.trevorwiebe.ynab.db.entities.PayeeLocationEntity;
-import com.trevorwiebe.ynab.utils.Constants;
-import com.trevorwiebe.ynab.utils.Utility;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,71 +30,56 @@ import static com.trevorwiebe.ynab.utils.Constants.BASE_URL;
 import static com.trevorwiebe.ynab.utils.Constants.BUDGET_ID;
 import static com.trevorwiebe.ynab.utils.Constants.PERSONAL_ACCESS_TOKEN;
 
+public class SyncToDatabaseWorkManger extends Worker {
 
-public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
+    private static final String TAG = "SyncToDatabaseWorkMange";
 
-    private static final String TAG = "RefreshBudgetInfo";
+    private Context mContext;
 
-    private OnBudgetRefresh onBudgetRefresh;
-    private Context context;
-    private URL mUrl;
-
-    public RefreshBudgetInfo(Context context, OnBudgetRefresh onBudgetRefresh){
-        this.context = context;
-        this.onBudgetRefresh = onBudgetRefresh;
+    public SyncToDatabaseWorkManger (@NonNull Context context, @NonNull WorkerParameters workerParams){
+        super(context, workerParams);
+        this.mContext = context;
     }
 
-    public interface OnBudgetRefresh{
-        void onBudgetRefresh(int resultCode);
-    }
-
+    @NonNull
     @Override
-    protected void onPreExecute() {
+    public Result doWork() {
+
         try{
             String strUrl;
 
-            String server_knowledge = Utility.getServerKnowledge(context);
+            String server_knowledge = Utility.getServerKnowledge(mContext);
             if(server_knowledge.length() == 0){
                 strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN;
             }else {
                 strUrl = BASE_URL + "/budgets/" + BUDGET_ID + "" + "?access_token=" + PERSONAL_ACCESS_TOKEN + "&last_knowledge_of_server=" + server_knowledge;
             }
 
-            mUrl = new URL(strUrl);
-
-        }catch (MalformedURLException e){
-            Log.e(TAG, "onCreate: ", e);
-            this.cancel(true);
-        }
-        super.onPreExecute();
-    }
-
-    @Override
-    protected Integer doInBackground(Void... Void) {
-
-        if(isCancelled()){
-            return Constants.ERROR_UNKNOWN;
-        }else {
+            URL url = new URL(strUrl);
 
             try {
 
-                URLConnection urlConnection = mUrl.openConnection();
+                URLConnection urlConnection = url.openConnection();
                 InputStream in = urlConnection.getInputStream();
 
                 String result = inputStreamToString(in);
 
-                return parseAndSaveInputStream(result);
+                int resultCode = parseAndSaveInputStream(result);
+
+                if(resultCode == Constants.RESULT_OK) {
+                    Utility.saveLastSynced(mContext, System.currentTimeMillis());
+                }
 
             } catch (IOException e) {
-                return Constants.IO_EXCEPTION;
+                Log.e(TAG, "doWork: ", e);
             }
-        }
-    }
 
-    @Override
-    protected void onPostExecute(Integer resultCode) {
-        super.onPostExecute(resultCode);
-        onBudgetRefresh.onBudgetRefresh(resultCode);
+        }catch (MalformedURLException e){
+            Log.e(TAG, "onCreate: ", e);
+        }
+
+        return null;
+
     }
 
     private String inputStreamToString(InputStream inputStream) throws IOException {
@@ -118,7 +103,7 @@ public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
             JSONObject budgetObject = dataObject.getJSONObject("budget");
 
             String serverKnowledge = dataObject.getString("server_knowledge");
-            Utility.saveServerKnowledge(context, serverKnowledge);
+            Utility.saveServerKnowledge(mContext, serverKnowledge);
 
             JSONArray payeeArray = budgetObject.getJSONArray("payees");
             ArrayList<PayeeEntity> payeeEntities = new ArrayList<>();
@@ -138,7 +123,7 @@ public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
                 PayeeEntity payeeEntity = new PayeeEntity(payeeId, payeeName, transfer_account_id, deletedInt);
                 payeeEntities.add(payeeEntity);
             }
-            AppDatabase.getAppDatabase(context).payeeDao().insertPayeeList(payeeEntities);
+            AppDatabase.getAppDatabase(mContext).payeeDao().insertPayeeList(payeeEntities);
 
 
             JSONArray categoriesArray = budgetObject.getJSONArray("categories");
@@ -170,7 +155,7 @@ public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
                 CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt, goal_type, goal_target, balance);
                 categoryEntities.add(categoryEntity);
             }
-            AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
+            AppDatabase.getAppDatabase(mContext).categoryDao().insertCategoryList(categoryEntities);
 
             JSONArray accountArray = budgetObject.getJSONArray("accounts");
             ArrayList<AccountEntity> accountEntities = new ArrayList<>();
@@ -199,7 +184,7 @@ public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
                 AccountEntity accountEntity = new AccountEntity(id, name, balance, on_budget_int, deletedInt);
                 accountEntities.add(accountEntity);
             }
-            AppDatabase.getAppDatabase(context).accountDao().insertAccountList(accountEntities);
+            AppDatabase.getAppDatabase(mContext).accountDao().insertAccountList(accountEntities);
 
             JSONArray payeeLocationArray = budgetObject.getJSONArray("payee_locations");
             ArrayList<PayeeLocationEntity> payeeLocationEntities = new ArrayList<>();
@@ -222,7 +207,7 @@ public class RefreshBudgetInfo extends AsyncTask<Void, Void, Integer> {
                 payeeLocationEntities.add(payeeLocationEntity);
             }
 
-            AppDatabase.getAppDatabase(context).payeeLocationDao().insertPayeeLocationEntities(payeeLocationEntities);
+            AppDatabase.getAppDatabase(mContext).payeeLocationDao().insertPayeeLocationEntities(payeeLocationEntities);
 
             return Constants.RESULT_OK;
 

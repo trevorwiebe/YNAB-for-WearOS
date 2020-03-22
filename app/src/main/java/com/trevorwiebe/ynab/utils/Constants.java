@@ -9,5 +9,6 @@ public class Constants {
     public static final int RESULT_OK = 0;
     public static final int IO_EXCEPTION = 1;
     public static final int PARSE_ERROR = 2;
+    public static final int ERROR_UNKNOWN = 3;
 
 }

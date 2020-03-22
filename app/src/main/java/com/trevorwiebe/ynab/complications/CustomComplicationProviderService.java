@@ -30,7 +30,7 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
      */
     @Override
     public void onComplicationActivated(int complicationId, int dataType, ComplicationManager complicationManager) {
-        Log.d(TAG, "onComplicationActivated(): " + complicationId);
+
     }
 
     @Override
