@@ -10,6 +10,8 @@ import android.widget.TextView;
 import com.trevorwiebe.ynab.R;
 import com.trevorwiebe.ynab.db.entities.AccountEntity;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ public class SelectAccountRvAdapter extends RecyclerView.Adapter<SelectAccountRv
 
     public ArrayList<AccountEntity> accountEntities;
 
-    private NumberFormat mNumberFormat = DecimalFormat.getCurrencyInstance(Locale.getDefault());
+    private NumberFormat mNumberFormat = DecimalFormat.getNumberInstance(Locale.getDefault());
 
     public SelectAccountRvAdapter(ArrayList<AccountEntity> accountEntities){
         this.accountEntities = accountEntities;
@@ -44,24 +46,25 @@ public class SelectAccountRvAdapter extends RecyclerView.Adapter<SelectAccountRv
         String accountNameText = accountEntity.getName();
         selectAccountViewHolder.accountName.setText(accountNameText);
 
-        String accountBalanceStr = Integer.toString(accountEntity.getBalance());
-        if(accountBalanceStr.length() <= 1){
+        long accountBalance = accountEntity.getBalance();
+
+        if(accountBalance == 0){
             selectAccountViewHolder.accountBalance.setText("$0.00");
             selectAccountViewHolder.accountBalance.setVisibility(View.VISIBLE);
             selectAccountViewHolder.accountBalanceNeg.setVisibility(View.GONE);
         }else {
-            accountBalanceStr = accountBalanceStr.substring(0, accountBalanceStr.length() - 3);
 
-            int accountBalanceInt = Integer.parseInt(accountBalanceStr);
-            accountBalanceStr = mNumberFormat.format(accountBalanceInt);
+            BigDecimal unscaled = new BigDecimal(accountBalance);
+            BigDecimal scaled = unscaled.scaleByPowerOfTen(-3).setScale(2, RoundingMode.HALF_UP);
+            String balanceStr = "$" + mNumberFormat.format(scaled);
 
-            if(accountBalanceInt < 0){
-                selectAccountViewHolder.accountBalanceNeg.setText(accountBalanceStr);
+            if(accountBalance < 0){
+                selectAccountViewHolder.accountBalanceNeg.setText(balanceStr);
 
                 selectAccountViewHolder.accountBalance.setVisibility(View.GONE);
                 selectAccountViewHolder.accountBalanceNeg.setVisibility(View.VISIBLE);
             }else {
-                selectAccountViewHolder.accountBalance.setText(accountBalanceStr);
+                selectAccountViewHolder.accountBalance.setText(balanceStr);
 
                 selectAccountViewHolder.accountBalance.setVisibility(View.VISIBLE);
                 selectAccountViewHolder.accountBalanceNeg.setVisibility(View.GONE);

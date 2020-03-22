@@ -6,7 +6,18 @@ import android.support.wearable.complications.ComplicationProviderService;
 import android.support.wearable.complications.ComplicationText;
 import android.util.Log;
 
-public class CustomComplicationProviderService extends ComplicationProviderService {
+import androidx.annotation.Nullable;
+
+import com.trevorwiebe.ynab.dataLoaders.QueryCategoryById;
+import com.trevorwiebe.ynab.db.AppDatabase;
+import com.trevorwiebe.ynab.db.dao.CategoryDao;
+import com.trevorwiebe.ynab.db.entities.CategoryEntity;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+public class CustomComplicationProviderService extends ComplicationProviderService implements
+    QueryCategoryById.OnCategoryByIdReturned{
 
     private static final String TAG = "ComplicationProvider";
 
@@ -22,21 +33,38 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
         Log.d(TAG, "onComplicationActivated(): " + complicationId);
     }
 
-    /*
-     * Called when the complication needs updated data from your provider. There are four scenarios
-     * when this will happen:
-     *
-     *   1. An active watch face complication is changed to use this provider
-     *   2. A complication using this provider becomes active
-     *   3. The period of time you specified in the manifest has elapsed (UPDATE_PERIOD_SECONDS)
-     *   4. You triggered an update from your own class via the
-     *       ProviderUpdateRequester.requestUpdate() method.
-     */
     @Override
     public void onComplicationUpdate(int complicationId, int dataType, ComplicationManager complicationManager) {
         Log.d(TAG, "onComplicationUpdate() id: " + complicationId);
 
+        new QueryCategoryById("d817dfd9-2a1e-4422-a9ab-95a0c9dce94c", CustomComplicationProviderService.this, complicationManager, complicationId, dataType).execute(CustomComplicationProviderService.this);
+    }
+
+    /*
+     * Called when the complication has been deactivated.
+     */
+    @Override
+    public void onComplicationDeactivated(int complicationId) {
+        Log.d(TAG, "onComplicationDeactivated(): " + complicationId);
+    }
+
+
+    @Override
+    public void onCategoryByIdReturned(CategoryEntity categoryEntity, @Nullable ComplicationManager complicationManager, @Nullable Integer complicationId, @Nullable Integer dataType) {
+
         ComplicationData complicationData = null;
+
+        long balance = categoryEntity.getBalance();
+        String balanceStr;
+        if(balance != 0) {
+            BigDecimal unscaled = new BigDecimal(balance);
+            BigDecimal scaled = unscaled.scaleByPowerOfTen(-3).setScale(2, RoundingMode.HALF_UP);
+            balanceStr = scaled.toPlainString();
+        }else{
+            balanceStr = "0";
+        }
+
+        long goal_target = categoryEntity.getGoal_target();
 
         switch (dataType){
             case ComplicationData.TYPE_SHORT_TEXT:
@@ -48,10 +76,15 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
             case ComplicationData.TYPE_RANGED_VALUE:
                 complicationData =
                         new ComplicationData.Builder(ComplicationData.TYPE_RANGED_VALUE)
-                                .setValue(2453)
-                                .setMaxValue(3000)
+                                .setValue(balance)
+                                .setMaxValue(goal_target)
                                 .setMinValue(0)
-                                .setShortText(ComplicationText.plainText("$2,453"))
+                                .setShortText(ComplicationText.plainText("$" + balanceStr))
+                                .build();
+                break;
+            case ComplicationData.TYPE_LONG_TEXT:
+                complicationData =
+                        new ComplicationData.Builder(ComplicationData.TYPE_LONG_TEXT)
                                 .build();
                 break;
             default:
@@ -65,14 +98,5 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
         }else{
             complicationManager.noUpdateRequired(complicationId);
         }
-
-    }
-
-    /*
-     * Called when the complication has been deactivated.
-     */
-    @Override
-    public void onComplicationDeactivated(int complicationId) {
-        Log.d(TAG, "onComplicationDeactivated(): " + complicationId);
     }
 }

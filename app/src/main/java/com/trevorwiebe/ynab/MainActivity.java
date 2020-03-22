@@ -8,6 +8,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.support.wearable.activity.WearableActivity;
+import android.support.wearable.complications.ComplicationManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -328,7 +329,7 @@ public class MainActivity extends WearableActivity implements
             new QueryPayeeById(MainActivity.this, payeeId).execute(MainActivity.this);
         }else if(requestCode == SELECT_CATEGORY_CODE && resultCode == RESULT_OK){
             String categoryId = data.getStringExtra("selectedCategoryId");
-            new QueryCategoryById(categoryId, MainActivity.this).execute(MainActivity.this);
+            new QueryCategoryById(categoryId, MainActivity.this, null, null, null).execute(MainActivity.this);
         }else if(requestCode == SELECT_ACCOUNT_CODE && resultCode == RESULT_OK){
             String accountId = data.getStringExtra("selectedAccountId");
             Log.d(TAG, "onActivityResult: " + accountId);
@@ -373,7 +374,7 @@ public class MainActivity extends WearableActivity implements
     }
 
     @Override
-    public void onCategoryByIdReturned(CategoryEntity categoryEntity) {
+    public void onCategoryByIdReturned(CategoryEntity categoryEntity, ComplicationManager complicationManager, Integer complicationId, Integer datatype) {
         mSelectedCategory = categoryEntity;
         if(mSelectedCategory != null){
             String categoryName = categoryEntity.getName();

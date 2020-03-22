@@ -50,7 +50,7 @@
 
             <meta-data
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
-                android:value="0"/>
+                android:value="3600"/>
         </service>
 
     </application>

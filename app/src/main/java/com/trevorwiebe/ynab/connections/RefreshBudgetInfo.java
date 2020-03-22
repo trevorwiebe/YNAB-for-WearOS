@@ -133,7 +133,11 @@ public class RefreshBudgetInfo extends AsyncTask<URL, Void, Integer> {
                     deletedInt = 0;
                 }
 
-                CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt);
+                String goal_type = jsonObject.getString("goal_type");
+                long goal_target = jsonObject.getLong("goal_target");
+                long balance = jsonObject.getLong("balance");
+
+                CategoryEntity categoryEntity = new CategoryEntity(categoryId, category_group_id, name, hiddenInt, deletedInt, goal_type, goal_target, balance);
                 categoryEntities.add(categoryEntity);
             }
             AppDatabase.getAppDatabase(context).categoryDao().insertCategoryList(categoryEntities);
