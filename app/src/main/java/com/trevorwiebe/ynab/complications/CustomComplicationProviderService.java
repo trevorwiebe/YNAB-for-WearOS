@@ -52,6 +52,8 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
     @Override
     public void onCategoryByIdReturned(CategoryEntity categoryEntity, @Nullable ComplicationManager complicationManager, @Nullable Integer complicationId, @Nullable Integer dataType) {
 
+        if(complicationManager == null || complicationId == null || dataType == null) return;
+
         ComplicationData complicationData = null;
 
         long balance = categoryEntity.getBalance();
@@ -70,7 +72,7 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
             case ComplicationData.TYPE_SHORT_TEXT:
                 complicationData =
                         new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
-                                .setShortText(ComplicationText.plainText("$2,453"))
+                                .setShortText(ComplicationText.plainText("$" + balanceStr))
                                 .build();
                 break;
             case ComplicationData.TYPE_RANGED_VALUE:
@@ -85,6 +87,8 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
             case ComplicationData.TYPE_LONG_TEXT:
                 complicationData =
                         new ComplicationData.Builder(ComplicationData.TYPE_LONG_TEXT)
+                                .setLongTitle(ComplicationText.plainText(categoryEntity.getName()))
+                                .setLongText(ComplicationText.plainText("$" + balanceStr))
                                 .build();
                 break;
             default:
