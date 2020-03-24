@@ -1,5 +1,7 @@
 package com.trevorwiebe.ynab.complications;
 
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.support.wearable.complications.ComplicationData;
 import android.support.wearable.complications.ComplicationManager;
 import android.support.wearable.complications.ComplicationProviderService;
@@ -8,6 +10,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.trevorwiebe.ynab.MainActivity;
 import com.trevorwiebe.ynab.dataLoaders.QueryCategoryById;
 import com.trevorwiebe.ynab.db.AppDatabase;
 import com.trevorwiebe.ynab.db.dao.CategoryDao;
@@ -66,6 +69,9 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
             balanceStr = "0";
         }
 
+        Intent wearOsIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, wearOsIntent, 0);
+
         long goal_target = categoryEntity.getGoal_target();
 
         switch (dataType){
@@ -73,6 +79,7 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
                 complicationData =
                         new ComplicationData.Builder(ComplicationData.TYPE_SHORT_TEXT)
                                 .setShortText(ComplicationText.plainText("$" + balanceStr))
+                                .setTapAction(pendingIntent)
                                 .build();
                 break;
             case ComplicationData.TYPE_RANGED_VALUE:
@@ -82,6 +89,7 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
                                 .setMaxValue(goal_target)
                                 .setMinValue(0)
                                 .setShortText(ComplicationText.plainText("$" + balanceStr))
+                                .setTapAction(pendingIntent)
                                 .build();
                 break;
             case ComplicationData.TYPE_LONG_TEXT:
@@ -89,6 +97,7 @@ public class CustomComplicationProviderService extends ComplicationProviderServi
                         new ComplicationData.Builder(ComplicationData.TYPE_LONG_TEXT)
                                 .setLongTitle(ComplicationText.plainText(categoryEntity.getName()))
                                 .setLongText(ComplicationText.plainText("$" + balanceStr))
+                                .setTapAction(pendingIntent)
                                 .build();
                 break;
             default:
